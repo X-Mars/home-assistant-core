@@ -1,4 +1,5 @@
 """Support for LaMetric numbers."""
+
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
@@ -24,14 +25,15 @@ class LaMetricNumberEntityDescription(NumberEntityDescription):
     """Class describing LaMetric number entities."""
 
     value_fn: Callable[[Device], int | None]
+    has_fn: Callable[[Device], bool] = lambda device: True
     set_value_fn: Callable[[LaMetricDevice, float], Awaitable[Any]]
 
 
 NUMBERS = [
     LaMetricNumberEntityDescription(
         key="brightness",
+        translation_key="brightness",
         name="Brightness",
-        icon="mdi:brightness-6",
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_min_value=0,
@@ -42,13 +44,14 @@ NUMBERS = [
     ),
     LaMetricNumberEntityDescription(
         key="volume",
+        translation_key="volume",
         name="Volume",
-        icon="mdi:volume-high",
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_min_value=0,
         native_max_value=100,
-        value_fn=lambda device: device.audio.volume,
+        has_fn=lambda device: bool(device.audio and device.audio.available),
+        value_fn=lambda device: device.audio.volume if device.audio else 0,
         set_value_fn=lambda api, volume: api.audio(volume=int(volume)),
     ),
 ]
